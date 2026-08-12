@@ -1,250 +1,63 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut,
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {
-  addDoc, collection, deleteDoc, doc, getDoc, getFirestore, onSnapshot,
-  orderBy, query, serverTimestamp, setDoc, updateDoc, where,
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { addDoc, collection, deleteDoc, doc, getDoc, getFirestore, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { firebaseConfig, defaultGroupId } from "./firebase-config.js";
 
-const elements = Object.fromEntries([
-  "user-panel", "user-name", "user-email", "logout-button", "message", "login-view",
-  "login-button", "memo-view", "group-name", "add-button", "loading", "empty-state",
-  "memo-list", "memo-dialog", "memo-form", "dialog-title", "close-button", "cancel-button",
-  "delete-button", "save-button", "memo-title", "memo-body",
-].map((id) => [id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()), document.getElementById(id)]));
+const ids = ["user-panel","user-name","user-email","logout-button","message","login-view","login-button","memo-view","group-name","add-button","clipboard-button","settings-button","loading","empty-state","memo-list","filter-tabs","memo-dialog","memo-form","dialog-title","close-button","cancel-button","delete-button","pin-button","save-button","fullscreen-button","memo-type","memo-title","memo-body","text-actions","format-button","format-menu","copy-body-button","checklist-hint","clipboard-dialog","clipboard-form","clipboard-text","clipboard-list","clipboard-empty","settings-dialog","theme-options"];
+const elements = Object.fromEntries(ids.map((id) => [id.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase()), document.getElementById(id)]));
+const MEMO_TYPES = { text: "メモ", checklist: "チェック", snippet: "定型文" };
+const THEMES = { blue:["#2563eb","#1d4ed8","#e8f0ff"], green:["#16835d","#116a4b","#e4f5ee"], purple:["#7c3aed","#6d28d9","#f0e8ff"], orange:["#d65a0b","#b84708","#fff0e3"], red:["#c33131","#a72828","#fdeaea"], gray:["#52606d","#3e4c59","#edf1f4"] };
+const CLIPBOARD_KEY = "sharedMemoV2.clipboard";
+const THEME_KEY = "sharedMemoV2.theme";
+let auth, db, currentUser, editingMemoId, unsubscribeMemos;
+let memos = [], activeFilter = "all", editingPinned = false, messageTimer;
 
-let auth;
-let db;
-let currentUser = null;
-let editingMemoId = null;
-let unsubscribeMemos = null;
-
-function showMessage(text, type = "error") {
-  elements.message.textContent = text;
-  elements.message.className = `message${type === "success" ? " success" : ""}`;
-  elements.message.hidden = false;
+function showMessage(text, type = "error", temporary = false) {
+  clearTimeout(messageTimer); elements.message.textContent = text; elements.message.className = `message${type === "success" ? " success" : ""}`; elements.message.hidden = false;
+  if (temporary) messageTimer = setTimeout(clearMessage, 2200);
 }
-
-function clearMessage() {
-  elements.message.hidden = true;
-  elements.message.textContent = "";
+function clearMessage() { clearTimeout(messageTimer); elements.message.hidden = true; elements.message.textContent = ""; }
+function readableError(error, fallback) { console.error(error); if (error?.code === "auth/popup-closed-by-user") return "ログイン画面が閉じられました。"; if (error?.code === "auth/popup-blocked") return "ポップアップを許可してください。"; if (error?.code === "permission-denied") return "この操作を行う権限がありません。"; return fallback; }
+function normalizedMemo(snapshot) { const data = snapshot.data(); return { id:snapshot.id, ...data, type:MEMO_TYPES[data.type] ? data.type : "text", pinned:data.pinned === true }; }
+function resetSignedOutView() { unsubscribeMemos?.(); unsubscribeMemos = null; currentUser = null; closeDialog(elements.memoDialog); elements.userPanel.hidden = true; elements.memoView.hidden = true; elements.loginView.hidden = false; elements.memoList.replaceChildren(); }
+async function saveUserProfile(user) { const ref=doc(db,"users",user.uid); const snap=await getDoc(ref); const profile={displayName:user.displayName||"名前未設定",email:user.email||""}; await setDoc(ref,snap.exists()?profile:{...profile,createdAt:serverTimestamp()},{merge:true}); }
+async function enterGroup(user) { const snap=await getDoc(doc(db,"groups",defaultGroupId)); if(!snap.exists()||!snap.data().members?.includes(user.uid)){ elements.memoView.hidden=true; showMessage("このグループを利用する権限がありません。"); return; } elements.groupName.textContent=snap.data().name||"共有グループ"; elements.memoView.hidden=false; listenForMemos(); }
+function listenForMemos() { unsubscribeMemos?.(); elements.loading.hidden=false; const q=query(collection(db,"memos"),where("groupId","==",defaultGroupId),orderBy("updatedAt","desc")); unsubscribeMemos=onSnapshot(q,(snapshot)=>{ elements.loading.hidden=true; memos=snapshot.docs.map(normalizedMemo); renderMemos(); },(error)=>{ elements.loading.hidden=true; showMessage(readableError(error,"Firestoreからメモを取得できませんでした。")); }); }
+function timestampMillis(memo){ return memo.updatedAt?.toMillis?.() || 0; }
+function renderMemos(){ const visible=memos.filter((memo)=>activeFilter==="all"||memo.type===activeFilter).sort((a,b)=>Number(b.pinned)-Number(a.pinned)||timestampMillis(b)-timestampMillis(a)); elements.emptyState.hidden=visible.length>0; elements.memoList.replaceChildren(...visible.map(createMemoCard)); }
+function createMemoCard(memo){
+  const card=document.createElement("article"); card.className="memo-card";
+  const openButton=document.createElement("button"); openButton.type="button"; openButton.className="memo-open"; openButton.setAttribute("aria-label",`${memo.title||"無題"}を編集`);
+  const heading=document.createElement("div"); heading.className="card-heading"; if(memo.pinned){const pin=document.createElement("span");pin.className="pin";pin.textContent="📌";heading.append(pin);} const title=document.createElement("h2");title.textContent=memo.title||"無題"; const badge=document.createElement("span");badge.className="type-badge";badge.textContent=MEMO_TYPES[memo.type];heading.append(title,badge); openButton.append(heading);
+  if(memo.type!=="checklist") { const body=document.createElement("p");body.className="memo-preview";body.textContent=truncate(memo.body||"",150);openButton.append(body); }
+  openButton.addEventListener("click",()=>openMemoDialog(memo)); card.append(openButton); if(memo.type==="checklist") card.append(createChecklist(memo));
+  if(memo.type==="snippet"){const actions=document.createElement("div");actions.className="card-actions";const copy=document.createElement("button");copy.type="button";copy.className="text-button";copy.textContent="コピー";copy.addEventListener("click",()=>copyText(memo.body||""));actions.append(copy);card.append(actions);}
+  const meta=document.createElement("div");meta.className="memo-meta";const updater=document.createElement("span");updater.textContent=`更新：${memo.updatedByName||"不明"}`;const date=document.createElement("time");date.textContent=formatTimestamp(memo.updatedAt);meta.append(updater,date);card.append(meta);return card;
 }
-
-function readableError(error, fallback) {
-  console.error(error);
-  if (error?.code === "auth/popup-closed-by-user") return "ログイン画面が閉じられました。もう一度お試しください。";
-  if (error?.code === "auth/popup-blocked") return "ログイン画面がブロックされました。ポップアップを許可してください。";
-  if (error?.code === "permission-denied") return "この操作を行う権限がありません。";
-  return fallback;
+function parseChecklist(body){ return body.split("\n").map((line)=>{const match=line.match(/^\s*\[([ xX])\]\s?(.*)$/);return match?{checked:match[1].toLowerCase()==="x",text:match[2]}:{checked:false,text:line.trim()};}).filter((item)=>item.text); }
+function serializeChecklist(items){ return items.map((item)=>`[${item.checked?"x":" "}] ${item.text}`).join("\n"); }
+function createChecklist(memo){ const list=document.createElement("div");list.className="checklist-preview";parseChecklist(memo.body||"").slice(0,8).forEach((item,index)=>{const row=document.createElement("label");row.className="check-row";const box=document.createElement("input");box.type="checkbox";box.checked=item.checked;box.addEventListener("click",(event)=>event.stopPropagation());box.addEventListener("change",()=>toggleChecklist(memo,index,box.checked));const text=document.createElement("span");text.textContent=item.text;row.append(box,text);list.append(row);});return list; }
+async function toggleChecklist(memo,index,checked){ const items=parseChecklist(memo.body||"");items[index].checked=checked;try{await updateDoc(doc(db,"memos",memo.id),{body:serializeChecklist(items),updatedBy:currentUser.uid,updatedByName:currentUser.displayName||"名前未設定",updatedAt:serverTimestamp()});}catch(error){showMessage(readableError(error,"チェック状態の更新に失敗しました。"));renderMemos();} }
+function truncate(text,length){return text.length>length?`${text.slice(0,length)}…`:text;} function formatTimestamp(timestamp){if(!timestamp?.toDate)return "更新日時を同期中…";return new Intl.DateTimeFormat("ja-JP",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).format(timestamp.toDate());}
+function openMemoDialog(memo=null){ clearMessage();editingMemoId=memo?.id||null;editingPinned=memo?.pinned||false;elements.dialogTitle.textContent=memo?"メモ編集":"メモ追加";elements.memoType.value=memo?.type||"text";elements.memoTitle.value=memo?.title||"";elements.memoBody.value=memo?.body||"";elements.deleteButton.hidden=!memo;updatePinButton();updateTypeControls();elements.memoDialog.showModal();elements.memoTitle.focus(); }
+function closeDialog(dialog){if(dialog?.open)dialog.close();if(dialog===elements.memoDialog){editingMemoId=null;elements.memoForm.reset();elements.memoDialog.classList.remove("focus-mode");elements.fullscreenButton.textContent="全画面";}}
+function updateTypeControls(){const type=elements.memoType.value;elements.textActions.hidden=type==="checklist";elements.checklistHint.hidden=type!=="checklist";elements.copyBodyButton.hidden=type!=="snippet";}
+function updatePinButton(){elements.pinButton.textContent=editingPinned?"★ ピン解除":"☆ ピン留め";elements.pinButton.classList.toggle("pin",editingPinned);}
+async function saveMemo(event){event.preventDefault();const title=elements.memoTitle.value.trim();let body=elements.memoBody.value.trim();const type=elements.memoType.value;if(!title||!body)return;if(type==="checklist")body=serializeChecklist(parseChecklist(body));setFormBusy(true);const editor={updatedBy:currentUser.uid,updatedByName:currentUser.displayName||"名前未設定",updatedAt:serverTimestamp()};try{if(editingMemoId){await updateDoc(doc(db,"memos",editingMemoId),{title,body,type,pinned:editingPinned,...editor});closeDialog(elements.memoDialog);showMessage("メモを更新しました。","success",true);}else{await addDoc(collection(db,"memos"),{groupId:defaultGroupId,title,body,type,pinned:editingPinned,createdBy:currentUser.uid,createdByName:currentUser.displayName||"名前未設定",createdAt:serverTimestamp(),...editor});closeDialog(elements.memoDialog);showMessage("メモを保存しました。","success",true);}}catch(error){showMessage(readableError(error,editingMemoId?"メモの更新に失敗しました。":"メモの保存に失敗しました。"));}finally{setFormBusy(false);}}
+async function deleteMemo(){if(!editingMemoId||!window.confirm("このメモを削除しますか？"))return;setFormBusy(true);try{await deleteDoc(doc(db,"memos",editingMemoId));closeDialog(elements.memoDialog);showMessage("メモを削除しました。","success",true);}catch(error){showMessage(readableError(error,"メモの削除に失敗しました。"));}finally{setFormBusy(false);}}
+function setFormBusy(busy){elements.saveButton.disabled=busy;elements.deleteButton.disabled=busy;elements.saveButton.textContent=busy?"処理中…":"保存";}
+function formatBody(action){let lines=elements.memoBody.value.split("\n");if(action==="bullets")lines=lines.map((line)=>`- ${line}`);if(action==="numbers")lines=lines.map((line,index)=>`${index+1}. ${line}`);if(action==="blank")lines=lines.filter((line)=>line.trim());if(action==="duplicate")lines=lines.filter((line,index)=>lines.indexOf(line)===index);if(action==="asc"||action==="desc")lines.sort((a,b)=>a.localeCompare(b,"ja"));if(action==="desc")lines.reverse();elements.memoBody.value=lines.join("\n");elements.formatMenu.hidden=true;elements.formatButton.setAttribute("aria-expanded","false");elements.memoBody.focus();}
+async function copyText(text){try{await navigator.clipboard.writeText(text);showMessage("コピーしました","success",true);}catch(error){showMessage(readableError(error,"コピーに失敗しました。ブラウザの権限を確認してください。"));}}
+function readStorage(key,fallback){try{const value=localStorage.getItem(key);return value===null?fallback:JSON.parse(value);}catch(error){showMessage(readableError(error,"localStorageを利用できませんでした。"));return fallback;}}
+function writeStorage(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch(error){showMessage(readableError(error,"localStorageへの保存に失敗しました。"));return false;}}
+function renderClipboard(){const entries=readStorage(CLIPBOARD_KEY,[]);elements.clipboardEmpty.hidden=entries.length>0;elements.clipboardList.replaceChildren(...entries.map((text,index)=>{const item=document.createElement("div");item.className="clipboard-item";const content=document.createElement("p");content.textContent=text;const actions=document.createElement("div");actions.className="clipboard-actions";const copy=document.createElement("button");copy.className="button button-quiet compact";copy.type="button";copy.textContent="コピー";copy.addEventListener("click",()=>copyText(text));const remove=document.createElement("button");remove.className="button button-danger compact";remove.type="button";remove.textContent="削除";remove.addEventListener("click",()=>{entries.splice(index,1);if(writeStorage(CLIPBOARD_KEY,entries))renderClipboard();});actions.append(copy,remove);item.append(content,actions);return item;}));}
+function applyTheme(name){const theme=THEMES[name]||THEMES.blue;document.documentElement.style.setProperty("--accent-color",theme[0]);document.documentElement.style.setProperty("--accent-dark",theme[1]);document.documentElement.style.setProperty("--accent-soft",theme[2]);elements.themeOptions.querySelectorAll("button").forEach((button)=>button.classList.toggle("active",button.dataset.theme===name));}
+function bindEvents(){
+  elements.loginButton.addEventListener("click",async()=>{clearMessage();try{await signInWithPopup(auth,new GoogleAuthProvider());}catch(error){showMessage(readableError(error,"Googleログインに失敗しました。"));}});elements.logoutButton.addEventListener("click",async()=>{try{await signOut(auth);clearMessage();}catch(error){showMessage(readableError(error,"ログアウトに失敗しました。"));}});
+  elements.addButton.addEventListener("click",()=>openMemoDialog());elements.memoForm.addEventListener("submit",saveMemo);elements.deleteButton.addEventListener("click",deleteMemo);elements.pinButton.addEventListener("click",()=>{editingPinned=!editingPinned;updatePinButton();});elements.memoType.addEventListener("change",updateTypeControls);elements.closeButton.addEventListener("click",()=>closeDialog(elements.memoDialog));elements.cancelButton.addEventListener("click",()=>closeDialog(elements.memoDialog));elements.memoDialog.addEventListener("cancel",(event)=>{event.preventDefault();closeDialog(elements.memoDialog);});
+  elements.fullscreenButton.addEventListener("click",()=>{const active=elements.memoDialog.classList.toggle("focus-mode");elements.fullscreenButton.textContent=active?"元に戻す":"全画面";});elements.formatButton.addEventListener("click",()=>{elements.formatMenu.hidden=!elements.formatMenu.hidden;elements.formatButton.setAttribute("aria-expanded",String(!elements.formatMenu.hidden));});elements.formatMenu.addEventListener("click",(event)=>{if(event.target.dataset.format)formatBody(event.target.dataset.format);});elements.copyBodyButton.addEventListener("click",()=>copyText(elements.memoBody.value));
+  elements.filterTabs.addEventListener("click",(event)=>{if(!event.target.dataset.filter)return;activeFilter=event.target.dataset.filter;elements.filterTabs.querySelectorAll("button").forEach((button)=>button.classList.toggle("active",button===event.target));renderMemos();});
+  elements.clipboardButton.addEventListener("click",()=>{renderClipboard();elements.clipboardDialog.showModal();});elements.settingsButton.addEventListener("click",()=>elements.settingsDialog.showModal());document.querySelectorAll(".dialog-close").forEach((button)=>button.addEventListener("click",()=>closeDialog(button.closest("dialog"))));elements.clipboardForm.addEventListener("submit",(event)=>{event.preventDefault();const entries=readStorage(CLIPBOARD_KEY,[]);entries.unshift(elements.clipboardText.value.trim());if(writeStorage(CLIPBOARD_KEY,entries.slice(0,10))){elements.clipboardForm.reset();renderClipboard();}});elements.themeOptions.addEventListener("click",(event)=>{const name=event.target.dataset.theme;if(name&&writeStorage(THEME_KEY,name))applyTheme(name);});
 }
-
-function resetSignedOutView() {
-  unsubscribeMemos?.();
-  unsubscribeMemos = null;
-  currentUser = null;
-  if (elements.memoDialog.open) closeMemoDialog();
-  elements.userPanel.hidden = true;
-  elements.memoView.hidden = true;
-  elements.loginView.hidden = false;
-  elements.memoList.replaceChildren();
-}
-
-async function saveUserProfile(user) {
-  const userRef = doc(db, "users", user.uid);
-  const snapshot = await getDoc(userRef);
-  const profile = { displayName: user.displayName || "名前未設定", email: user.email || "" };
-  if (snapshot.exists()) {
-    await setDoc(userRef, profile, { merge: true });
-  } else {
-    await setDoc(userRef, { ...profile, createdAt: serverTimestamp() });
-  }
-}
-
-async function enterGroup(user) {
-  const groupSnapshot = await getDoc(doc(db, "groups", defaultGroupId));
-  if (!groupSnapshot.exists() || !groupSnapshot.data().members?.includes(user.uid)) {
-    elements.memoView.hidden = true;
-    showMessage("このグループを利用する権限がありません。");
-    return;
-  }
-
-  elements.groupName.textContent = groupSnapshot.data().name || "共有グループ";
-  elements.memoView.hidden = false;
-  listenForMemos();
-}
-
-function listenForMemos() {
-  unsubscribeMemos?.();
-  elements.loading.hidden = false;
-  const memoQuery = query(
-    collection(db, "memos"),
-    where("groupId", "==", defaultGroupId),
-    orderBy("updatedAt", "desc"),
-  );
-  unsubscribeMemos = onSnapshot(memoQuery, (snapshot) => {
-    elements.loading.hidden = true;
-    elements.emptyState.hidden = !snapshot.empty;
-    elements.memoList.replaceChildren(...snapshot.docs.map(createMemoCard));
-  }, (error) => {
-    elements.loading.hidden = true;
-    showMessage(readableError(error, "メモの取得に失敗しました。通信状態とFirestoreの設定を確認してください。"));
-  });
-}
-
-function createMemoCard(memoSnapshot) {
-  const memo = memoSnapshot.data();
-  const card = document.createElement("article");
-  card.className = "memo-card";
-  card.tabIndex = 0;
-  card.setAttribute("role", "button");
-  card.setAttribute("aria-label", `${memo.title || "無題"}を編集`);
-
-  const title = document.createElement("h2");
-  title.textContent = memo.title || "無題";
-  const body = document.createElement("p");
-  body.className = "memo-preview";
-  body.textContent = truncate(memo.body || "", 110);
-  const meta = document.createElement("div");
-  meta.className = "memo-meta";
-  const updater = document.createElement("span");
-  updater.textContent = `更新：${memo.updatedByName || "不明"}`;
-  const date = document.createElement("time");
-  date.textContent = formatTimestamp(memo.updatedAt);
-  meta.append(updater, date);
-  card.append(title, body, meta);
-
-  const open = () => openMemoDialog(memoSnapshot.id, memo);
-  card.addEventListener("click", open);
-  card.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); }
-  });
-  return card;
-}
-
-function truncate(text, length) {
-  return text.length > length ? `${text.slice(0, length)}…` : text;
-}
-
-function formatTimestamp(timestamp) {
-  if (!timestamp?.toDate) return "更新日時を同期中…";
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
-  }).format(timestamp.toDate());
-}
-
-function openMemoDialog(id = null, memo = {}) {
-  clearMessage();
-  editingMemoId = id;
-  elements.dialogTitle.textContent = id ? "メモ編集" : "メモ追加";
-  elements.memoTitle.value = memo.title || "";
-  elements.memoBody.value = memo.body || "";
-  elements.deleteButton.hidden = !id;
-  elements.memoDialog.showModal();
-  elements.memoTitle.focus();
-}
-
-function closeMemoDialog() {
-  editingMemoId = null;
-  elements.memoForm.reset();
-  elements.memoDialog.close();
-}
-
-async function saveMemo(event) {
-  event.preventDefault();
-  const title = elements.memoTitle.value.trim();
-  const body = elements.memoBody.value.trim();
-  if (!title || !body) return;
-  setFormBusy(true);
-  const editor = { updatedBy: currentUser.uid, updatedByName: currentUser.displayName || "名前未設定", updatedAt: serverTimestamp() };
-  try {
-    if (editingMemoId) {
-      await updateDoc(doc(db, "memos", editingMemoId), { title, body, ...editor });
-      closeMemoDialog();
-      showMessage("メモを更新しました。", "success");
-    } else {
-      await addDoc(collection(db, "memos"), {
-        groupId: defaultGroupId, title, body,
-        createdBy: currentUser.uid, createdByName: currentUser.displayName || "名前未設定",
-        createdAt: serverTimestamp(), ...editor,
-      });
-      closeMemoDialog();
-      showMessage("メモを保存しました。", "success");
-    }
-  } catch (error) {
-    showMessage(readableError(error, editingMemoId ? "メモの更新に失敗しました。" : "メモの保存に失敗しました。"));
-  } finally {
-    setFormBusy(false);
-  }
-}
-
-async function deleteMemo() {
-  if (!editingMemoId || !window.confirm("このメモを削除しますか？")) return;
-  setFormBusy(true);
-  try {
-    await deleteDoc(doc(db, "memos", editingMemoId));
-    closeMemoDialog();
-    showMessage("メモを削除しました。", "success");
-  } catch (error) {
-    showMessage(readableError(error, "メモの削除に失敗しました。"));
-  } finally {
-    setFormBusy(false);
-  }
-}
-
-function setFormBusy(busy) {
-  elements.saveButton.disabled = busy;
-  elements.deleteButton.disabled = busy;
-  elements.saveButton.textContent = busy ? "処理中…" : "保存";
-}
-
-function bindEvents() {
-  elements.loginButton.addEventListener("click", async () => {
-    clearMessage();
-    try { await signInWithPopup(auth, new GoogleAuthProvider()); }
-    catch (error) { showMessage(readableError(error, "Googleログインに失敗しました。")); }
-  });
-  elements.logoutButton.addEventListener("click", async () => {
-    try { await signOut(auth); clearMessage(); }
-    catch (error) { showMessage(readableError(error, "ログアウトに失敗しました。")); }
-  });
-  elements.addButton.addEventListener("click", () => openMemoDialog());
-  elements.memoForm.addEventListener("submit", saveMemo);
-  elements.deleteButton.addEventListener("click", deleteMemo);
-  elements.closeButton.addEventListener("click", closeMemoDialog);
-  elements.cancelButton.addEventListener("click", closeMemoDialog);
-  elements.memoDialog.addEventListener("cancel", (event) => { event.preventDefault(); closeMemoDialog(); });
-}
-
-function start() {
-  const missingConfig = Object.values(firebaseConfig).some((value) => (
-    value.startsWith("YOUR_") || value === "Firebase Consoleに表示された値"
-  ));
-  if (missingConfig) {
-    elements.loginButton.disabled = true;
-    showMessage("Firebaseの設定が未完了です。firebase-config.jsを設定してください。");
-    return;
-  }
-  try {
-    const app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    bindEvents();
-    onAuthStateChanged(auth, async (user) => {
-      clearMessage();
-      if (!user) { resetSignedOutView(); return; }
-      currentUser = user;
-      elements.loginView.hidden = true;
-      elements.userPanel.hidden = false;
-      elements.userName.textContent = user.displayName || "名前未設定";
-      elements.userEmail.textContent = user.email || "";
-      try { await saveUserProfile(user); await enterGroup(user); }
-      catch (error) { showMessage(readableError(error, "Firebaseへの接続に失敗しました。設定と通信状態を確認してください。")); }
-    });
-  } catch (error) {
-    showMessage(readableError(error, "Firebaseの初期化に失敗しました。設定を確認してください。"));
-  }
-}
-
+function start(){applyTheme(readStorage(THEME_KEY,"blue"));const missing=Object.values(firebaseConfig).some((value)=>value.startsWith("YOUR_")||value==="Firebase Consoleに表示された値");if(missing){elements.loginButton.disabled=true;showMessage("Firebaseの設定が未完了です。firebase-config.jsを設定してください。");return;}try{const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);bindEvents();onAuthStateChanged(auth,async(user)=>{clearMessage();if(!user){resetSignedOutView();return;}currentUser=user;elements.loginView.hidden=true;elements.userPanel.hidden=false;elements.userName.textContent=user.displayName||"名前未設定";elements.userEmail.textContent=user.email||"";try{await saveUserProfile(user);await enterGroup(user);}catch(error){showMessage(readableError(error,"Firebaseへの接続に失敗しました。"));}});}catch(error){showMessage(readableError(error,"Firebaseの初期化に失敗しました。"));}}
 start();

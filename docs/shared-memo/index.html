@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="グループでリアルタイムに共有できるメモアプリ">
+    <meta name="description" content="個人でも共有でも使える軽量メモアプリ">
     <title>Shared Memo</title>
     <link rel="stylesheet" href="./style.css">
   </head>
@@ -18,7 +18,6 @@
 
     <main class="page-shell">
       <div id="message" class="message" role="alert" aria-live="assertive" hidden></div>
-
       <section id="login-view" class="center-card">
         <h1>共有メモへようこそ</h1>
         <p>グループのメモを見るにはログインしてください。</p>
@@ -27,14 +26,21 @@
 
       <section id="memo-view" hidden>
         <div class="section-heading">
-          <div>
-            <p id="group-name" class="eyebrow">共有グループ</p>
-            <h1>共有メモ</h1>
-          </div>
-          <button id="add-button" class="button" type="button">＋ メモ追加</button>
+          <div><p id="group-name" class="eyebrow">共有グループ</p><h1>共有メモ</h1></div>
+        </div>
+        <nav id="filter-tabs" class="filter-tabs" aria-label="メモタイプ">
+          <button class="filter-button active" type="button" data-filter="all">すべて</button>
+          <button class="filter-button" type="button" data-filter="text">メモ</button>
+          <button class="filter-button" type="button" data-filter="checklist">チェック</button>
+          <button class="filter-button" type="button" data-filter="snippet">定型文</button>
+        </nav>
+        <div class="toolbar">
+          <button id="add-button" class="button" type="button">＋ 新規</button>
+          <button id="clipboard-button" class="button button-quiet" type="button">クリップボード</button>
+          <button id="settings-button" class="button button-quiet" type="button">設定</button>
         </div>
         <p id="loading" class="status">メモを読み込んでいます…</p>
-        <p id="empty-state" class="empty-state" hidden>メモはまだありません。最初のメモを追加しましょう。</p>
+        <p id="empty-state" class="empty-state" hidden>表示するメモはありません。</p>
         <div id="memo-list" class="memo-grid"></div>
       </section>
     </main>
@@ -43,21 +49,21 @@
       <form id="memo-form" method="dialog">
         <div class="dialog-heading">
           <h2 id="dialog-title">メモ追加</h2>
-          <button id="close-button" class="icon-button" type="button" aria-label="閉じる">×</button>
+          <div class="heading-actions"><button id="fullscreen-button" class="button button-quiet compact" type="button">全画面</button><button id="close-button" class="icon-button" type="button" aria-label="閉じる">×</button></div>
         </div>
+        <label for="memo-type">タイプ</label>
+        <select id="memo-type" name="type"><option value="text">通常メモ</option><option value="checklist">チェックリスト</option><option value="snippet">定型文 / スニペット</option></select>
         <label for="memo-title">タイトル</label>
         <input id="memo-title" name="title" maxlength="120" required>
-        <label for="memo-body">本文</label>
+        <div class="body-heading"><label for="memo-body">本文</label><div id="text-actions"><button id="format-button" class="text-button" type="button" aria-expanded="false">加工 ▾</button><div id="format-menu" class="format-menu" hidden><button type="button" data-format="bullets">行頭に「- 」</button><button type="button" data-format="numbers">連番</button><button type="button" data-format="blank">空行削除</button><button type="button" data-format="duplicate">重複行削除</button><button type="button" data-format="asc">昇順ソート</button><button type="button" data-format="desc">降順ソート</button></div><button id="copy-body-button" class="text-button" type="button" hidden>コピー</button></div></div>
         <textarea id="memo-body" name="body" rows="10" required></textarea>
-        <div class="dialog-actions">
-          <button id="delete-button" class="button button-danger" type="button" hidden>削除</button>
-          <span class="action-spacer"></span>
-          <button id="cancel-button" class="button button-quiet" type="button">キャンセル</button>
-          <button id="save-button" class="button" type="submit">保存</button>
-        </div>
+        <p id="checklist-hint" class="field-hint" hidden>1行に1項目を入力します。保存時に「[ ] 項目」形式に整えます。</p>
+        <div class="dialog-actions"><button id="delete-button" class="button button-danger" type="button" hidden>削除</button><button id="pin-button" class="button button-quiet" type="button">☆ ピン留め</button><span class="action-spacer"></span><button id="cancel-button" class="button button-quiet" type="button">キャンセル</button><button id="save-button" class="button" type="submit">保存</button></div>
       </form>
     </dialog>
 
+    <dialog id="clipboard-dialog" class="small-dialog" aria-labelledby="clipboard-title"><div class="panel"><div class="dialog-heading"><h2 id="clipboard-title">クリップボード</h2><button class="icon-button dialog-close" type="button" aria-label="閉じる">×</button></div><form id="clipboard-form"><label for="clipboard-text">新しい文章</label><textarea id="clipboard-text" rows="3" maxlength="1000" required></textarea><button class="button" type="submit">登録</button></form><p id="clipboard-empty" class="empty-state">登録はありません。</p><div id="clipboard-list" class="clipboard-list"></div></div></dialog>
+    <dialog id="settings-dialog" class="small-dialog" aria-labelledby="settings-title"><div class="panel"><div class="dialog-heading"><h2 id="settings-title">設定</h2><button class="icon-button dialog-close" type="button" aria-label="閉じる">×</button></div><p>テーマカラー</p><div id="theme-options" class="theme-options"><button type="button" data-theme="blue" style="--swatch:#2563eb">Blue</button><button type="button" data-theme="green" style="--swatch:#16835d">Green</button><button type="button" data-theme="purple" style="--swatch:#7c3aed">Purple</button><button type="button" data-theme="orange" style="--swatch:#d65a0b">Orange</button><button type="button" data-theme="red" style="--swatch:#c33131">Red</button><button type="button" data-theme="gray" style="--swatch:#52606d">Gray</button></div></div></dialog>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
