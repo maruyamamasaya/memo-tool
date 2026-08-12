@@ -60,3 +60,11 @@
 .nav-section{padding:0!important;font-size:inherit}
 .memo-list-header,.memo-row{grid-template-columns:minmax(0,3fr) minmax(130px,1fr) minmax(150px,1fr)}
 @media(max-width:700px){.bulk-actions{align-items:stretch;flex-direction:column}.bulk-actions strong{margin:0}.memo-row{grid-template-columns:minmax(0,1fr) auto}.title-cell{grid-column:1/-1}.memo-info{grid-column:1}.row-actions{grid-column:2;grid-row:2;justify-content:flex-end}.editor-title{left:18px}}
+
+/* Fixed folder palette, balanced list columns, and bounded tag navigation */
+.folder-color-field{margin:14px 0 6px;padding:0;border:0}.folder-color-field legend{margin-bottom:8px;font-weight:700}.folder-colors{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}.folder-color-option{position:relative;display:grid;place-items:center;margin:0}.folder-color-option input{position:absolute;width:1px;height:1px;opacity:0}.folder-color-swatch{width:100%;height:34px;background:var(--folder-color);border:3px solid #fff;border-radius:7px;box-shadow:0 0 0 1px #cbd0d8}.folder-color-option input:checked+.folder-color-swatch{box-shadow:0 0 0 3px var(--accent)}.folder-color-option input:focus-visible+.folder-color-swatch{outline:3px solid var(--accent-soft);outline-offset:3px}
+.memo-list-header,.memo-row{grid-template-columns:minmax(0,75fr) minmax(0,15fr) minmax(0,10fr);gap:10px}
+.memo-info{max-height:3.25rem;overflow:hidden}.memo-info .folder-badge,.memo-info .tag{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.memo-info .folder-badge{order:-1;flex:none}
+.row-actions{gap:0}.row-actions .text-button{padding-inline:4px;font-size:.7rem}.memo-settings summary{padding-inline:4px;font-size:1rem}
+.show-all-tags{align-self:flex-start!important;margin-top:4px;padding:4px 7px!important;color:var(--accent)!important;font-size:.76rem!important}.all-tag-list{margin-top:18px}.all-tag-list button{font-size:.82rem}
+@media(max-width:700px){.folder-colors{grid-template-columns:repeat(4,1fr)}.memo-row{grid-template-columns:minmax(0,1fr) auto}.memo-info{max-height:3.25rem}}
