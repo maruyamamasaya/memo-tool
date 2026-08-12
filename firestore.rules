@@ -28,12 +28,14 @@ service cloud.firestore {
       allow create: if isGroupMember(request.resource.data.groupId)
         && request.resource.data.keys().hasOnly([
           'groupId', 'title', 'body', 'createdBy', 'createdByName', 'createdAt',
-          'updatedBy', 'updatedByName', 'updatedAt'
+          'updatedBy', 'updatedByName', 'updatedAt', 'type', 'pinned'
         ])
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 120
         && request.resource.data.body is string
+        && request.resource.data.type in ['text', 'checklist', 'snippet']
+        && request.resource.data.pinned is bool
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid
         && request.resource.data.createdAt == request.time
@@ -45,12 +47,14 @@ service cloud.firestore {
         && request.resource.data.createdByName == resource.data.createdByName
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'title', 'body', 'updatedBy', 'updatedByName', 'updatedAt'
+          'title', 'body', 'type', 'pinned', 'updatedBy', 'updatedByName', 'updatedAt'
         ])
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 120
         && request.resource.data.body is string
+        && request.resource.data.type in ['text', 'checklist', 'snippet']
+        && request.resource.data.pinned is bool
         && request.resource.data.updatedBy == request.auth.uid
         && request.resource.data.updatedAt == request.time;
     }
