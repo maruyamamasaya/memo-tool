@@ -16,7 +16,7 @@ Firebase Authentication と Cloud Firestore を使った、GitHub Pages向けの
 
 1. [Firebase Console](https://console.firebase.google.com/) でプロジェクトを作成します。
 2. 「プロジェクトの設定」→「全般」→「マイアプリ」でWebアプリ（`</>`）を追加します。
-3. 表示された `firebaseConfig` の値を `docs/shared-memo/firebase-config.js` にコピーします。Firebase API keyはクライアント識別用であり、データ保護はSecurity Rulesで行います。
+3. 表示された `firebaseConfig` のうち、`apiKey` と `appId` を `docs/shared-memo/firebase-config.js` の「Firebase Consoleに表示された値」へ元の値のままコピーします。その他のプロジェクト固有値は設定済みです。Firebase API keyはクライアント識別用であり、データ保護はSecurity Rulesで行います。
 
 ### 2. Googleログイン
 

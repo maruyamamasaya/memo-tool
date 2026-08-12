@@ -44,6 +44,7 @@ function resetSignedOutView() {
   unsubscribeMemos?.();
   unsubscribeMemos = null;
   currentUser = null;
+  if (elements.memoDialog.open) closeMemoDialog();
   elements.userPanel.hidden = true;
   elements.memoView.hidden = true;
   elements.loginView.hidden = false;
@@ -217,7 +218,10 @@ function bindEvents() {
 }
 
 function start() {
-  if (Object.values(firebaseConfig).some((value) => value.startsWith("YOUR_"))) {
+  const missingConfig = Object.values(firebaseConfig).some((value) => (
+    value.startsWith("YOUR_") || value === "Firebase Consoleに表示された値"
+  ));
+  if (missingConfig) {
     elements.loginButton.disabled = true;
     showMessage("Firebaseの設定が未完了です。firebase-config.jsを設定してください。");
     return;
