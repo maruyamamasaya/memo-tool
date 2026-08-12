@@ -1,78 +1,80 @@
-# Shared Memo V2
+# Shared Memo V3
 
-Firebase Authentication と Cloud Firestore を使った、GitHub Pages向けの軽量な共有メモです。Vanilla JavaScript構成のまま、通常メモ、チェックリスト、定型文を `group001` でリアルタイム共有できます。
+Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽量な共有メモです。Vanilla JavaScript のまま、普段は個人用として快適に、必要なときは `group001` のメンバー間でリアルタイム共有できます。
 
 ## ファイル
 
-- `docs/shared-memo/index.html` — メモ、フィルター、クリップボード、設定の画面構造
-- `docs/shared-memo/style.css` — テーマカラー、集中モードを含むレスポンシブUI
-- `docs/shared-memo/app.js` — Google認証、Firestore同期、V2機能、localStorage管理
+- `docs/shared-memo/index.html` — 検索、ナビゲーション、メモ・フォルダ編集画面
+- `docs/shared-memo/style.css` — 3段階の表示密度とモバイルメニューを含むレスポンシブUI
+- `docs/shared-memo/app.js` — 認証、リアルタイム同期、V3機能、localStorage管理
 - `docs/shared-memo/firebase-config.js` — Firebase Webアプリ設定とグループID
-- `firestore.rules` — グループメンバーだけにメモ操作を許可し、V2フィールドを検証するルール
+- `firestore.rules` — グループメンバーだけに `memos` / `folders` 操作を許可するルール
 
-## Firestoreデータ構造
+## V3 の Firestore データ
 
-`memos/{memoId}` は次のフィールドを持ちます。
+`memos/{memoId}` に、従来フィールドに加えて以下を保存します。
 
 | フィールド | 型 | 内容 |
 | --- | --- | --- |
-| `groupId` | string | `group001` |
-| `title`, `body` | string | タイトルと本文。チェックリストも `[ ]` / `[x]` の行テキスト |
-| `type` | string | `text`, `checklist`, `snippet` のいずれか |
-| `pinned` | boolean | ピン留め状態 |
-| `createdBy`, `updatedBy` | string | Firebase Auth UID |
-| `createdByName`, `updatedByName` | string | 操作者の表示名 |
-| `createdAt`, `updatedAt` | timestamp | サーバータイムスタンプ |
+| `folderId` | string / null | 所属フォルダ。null は未分類 |
+| `tags` | string[] | 最大20個のタグ |
+| `trashed`, `trashedAt` | boolean, timestamp / null | 論理削除状態と削除日時 |
+| `lastOpenedAt` | timestamp | 最後に開いた日時 |
 
-V1メモには `type` と `pinned` がないため、クライアントでそれぞれ `text` と `false` に補完します。移行処理は不要です。V1メモを次に保存した時点で両フィールドが追加されます。
+`folders/{folderId}` は `groupId`, `name`, `createdBy`, `createdAt` を持ちます。フォルダ削除はバッチで所属メモの `folderId` を null にしてからフォルダだけを削除します。文字数は保存しません。
+
+### 既存メモとの互換性
+
+クライアントは欠損値を `type: text`, `folderId: null`, `tags: []`, `pinned: false`, `trashed: false` として正規化します。手動移行は不要で、既存メモを次に通常保存した時点でV3フィールドが加わります。
 
 ## localStorage
 
-- `sharedMemoV2.clipboard` — 端末内クリップボード（文字列配列、最大10件）
-- `sharedMemoV2.theme` — 選択テーマ名
+- `sharedMemoV3.theme` — テーマカラー
+- `sharedMemoV3.density` — コンパクト / 標準 / 全文
+- `sharedMemoV3.clipboard` — 端末内クリップボード（最大10件）
+- `sharedMemoV3.mobileMenu` — モバイルメニューの開閉状態
 
-いずれも端末・ブラウザ内だけで利用し、Firestoreや他ユーザーとは共有しません。利用できない場合は画面とconsoleにエラーを表示します。
+フォルダ、タグ、ゴミ箱、最終閲覧日時は Firestore に保存されます。
 
-## Firebase Consoleの設定
+## Firebase の設定と Security Rules
 
-1. Firebase ConsoleでWebアプリを追加し、`docs/shared-memo/firebase-config.js` の未設定値を置き換えます。
-2. AuthenticationのGoogleプロバイダを有効にし、公開先の `ユーザー名.github.io` をAuthorized domainsへ追加します。
-3. Firestoreを本番環境モードで作成し、`firestore.rules` をルール画面へ貼り付けて公開します。
-4. `groups/group001` を作成し、`name`（string）と、利用者UIDを並べた `members`（array）を設定します。
+1. `docs/shared-memo/firebase-config.js` を Firebase Console の値に変更します。
+2. Authentication の Google プロバイダを有効にし、公開ドメインを Authorized domains に加えます。
+3. `groups/group001` に `members` 配列を作り、利用者UIDを登録します。
+4. `firestore.rules` をデプロイします。
 
-初回ログイン時には `users/{UID}` が自動作成されます。グループとメンバーの編集はFirebase Consoleから行います。
+ルールは認証済みで、対象ドキュメントの `groupId` に対応する `groups/{groupId}.members` にUIDがある場合だけ `memos` と `folders` を読み書き可能にします。作成時のフィールド、型、UID、サーバー時刻と、更新時の不変監査フィールドも検証するため、別グループのデータは操作できません。
 
-### インデックス
+### 複合インデックス
 
-V2でもFirestoreクエリは `groupId == group001` と `updatedAt DESC` だけです。ピン順とタイプ絞り込みは取得後にブラウザで行うため、`pinned` を含む新しい複合インデックスは不要です。既存環境で求められた場合のみ、エラー内のリンクから `memos` の次の複合インデックスを作成してください。
-
-- `groupId`: Ascending
-- `updatedAt`: Descending
-
-## GitHub Pagesで公開
-
-GitHubの「Settings」→「Pages」で対象ブランチの `/docs` を公開します。相対パスのみを使っているため、`https://ユーザー名.github.io/リポジトリ名/shared-memo/` で動作します。
+アプリのクエリは `memos` / `folders` とも `groupId == group001` の単一条件だけです。検索、タグ、タイプ、フォルダ、ピン、ゴミ箱、最近、各種並び替えは取得済みデータをブラウザで処理するため、V3で追加する複合インデックスはありません。
 
 ## 動作確認
 
-ローカルではリポジトリルートで `python3 -m http.server 8000` を実行し、`http://localhost:8000/docs/shared-memo/` を開きます。
+リポジトリルートで `python3 -m http.server 8000` を実行し、`http://localhost:8000/docs/shared-memo/` を開きます。
 
-1. メンバーでGoogleログインし、V1メモが通常メモ・未ピンとして表示されることを確認します。
-2. 3タイプを作成・編集・削除し、別ブラウザにもリアルタイム反映されることを確認します。
-3. チェック項目を一覧で切り替え、Firestoreの `body` が `[ ]` / `[x]` のテキストとして更新されることを確認します。
-4. 定型文のコピー、タイプフィルター、ピン順、本文加工（保存前のみ反映）、全画面と復帰を確認します。
-5. クリップボードを11件登録して10件に制限されること、コピー・削除・再読込後の保持を確認します。
-6. 6色のテーマを切り替え、再読込後にも復元されることを確認します。
-7. 非メンバーの読み書きがSecurity Rulesで拒否されることと、各失敗が画面・consoleへ表示されることを確認します。
+1. Googleログイン、group001判定、ログアウトと、既存V1/V2メモの表示を確認します。
+2. タイトル・本文・タグ・フォルダ名を大文字小文字を問わず検索し、0件表示を確認します。
+3. タグの追加・削除・クリック絞り込み、フォルダの作成・改名・削除・メモ移動・未分類化を確認します。フォルダ名変更・削除はフォルダ横の「編集」から行います。
+4. メモを開いて「最近」の順序と上部の最大5件が更新され、ゴミ箱のメモが除外されることを確認します。
+5. ゴミ箱移動、復元、確認ダイアログ後の完全削除と削除日時順を確認します。
+6. 3つの表示密度と再読込後の復元、編集時の文字・行数、一覧の文字数を確認します。
+7. 通常メモ、チェックリスト、定型文をコピーし、チェックリストが `[ ]` / `[x]` 形式になることを確認します。
+8. ピン優先・更新日時降順、チェック操作、加工、全画面、テーマ、クリップボードを確認します。
+9. 別ブラウザでメモ・フォルダがリアルタイム同期し、非メンバーと別グループの操作が拒否されることを確認します。
 
-## SwiftUI版で再利用できる項目
+## スマートフォン表示
 
-Firebase AuthenticationのUID、`groups` / `users` / `memos` のデータモデル、`group001` のメンバー判定、Security Rules、チェックリストの行テキスト形式、メモタイプ、ピン状態、作成・更新監査フィールドはそのまま利用できます。テーマと端末内クリップボードはWebのlocalStorage固有なので、SwiftUIでは `UserDefaults` 等へ置き換えます。
+幅700px以下ではカードを1列にし、最近・フォルダ・タグ・ゴミ箱・クリップボード・設定を「メニュー」内へ格納します。検索、タイプタブ、新規作成、表示密度は主要操作として画面上に残ります。実機では、メニューが横にはみ出さないこと、ダイアログをスクロールできること、ソフトウェアキーボード表示中も保存ボタンへ到達できることを確認してください。
+
+## SwiftUI 版で再利用できるデータ
+
+Auth UID、`groups` / `users` / `memos` / `folders`、監査フィールド、タグ配列、フォルダ参照、論理削除、最終閲覧日時、チェックリストの行テキスト形式はそのまま利用できます。テーマ、表示密度、簡易クリップボード、UI設定だけは `UserDefaults` 等へ置き換えます。
 
 ## 実装上の注意
 
-- チェック変更も通常の更新として `updatedBy`、`updatedByName`、`updatedAt` を更新します。
-- 加工機能はtextareaだけを書き換え、自動保存しません。
-- Clipboard APIはHTTPSまたはlocalhostなどのセキュアコンテキストとブラウザ権限が必要です。
-- `updatedAt` が未確定の瞬間は末尾相当になります。同期後にピン優先・更新日時降順へ再整列します。
-- ルール更新前はV2の `type` / `pinned` を含む保存が拒否されるため、アプリ公開と同時に新しいルールを公開してください。
+- 一覧同期はグループ単位で一度だけ行い、全フィルターと並び替えをクライアント側で処理します。メモ数が非常に増えた場合はページングを別途検討してください。
+- `lastOpenedAt` はメモ編集ダイアログを開いた時点で `serverTimestamp()` に更新します。
+- フォルダ削除のバッチ上限は500操作です。1フォルダに約499件を超える利用では分割バッチが必要です。
+- Clipboard API は HTTPS または localhost とブラウザ権限が必要です。
+- アプリ公開前にV3のルールも同時にデプロイしてください。
