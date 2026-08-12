@@ -66,3 +66,17 @@
 .row-actions{gap:0}.row-actions .text-button{padding-inline:4px;font-size:.7rem}.memo-settings summary{padding-inline:4px;font-size:1rem}
 .show-all-tags{align-self:flex-start!important;margin-top:4px;padding:4px 7px!important;color:var(--accent)!important;font-size:.76rem!important}.all-tag-list{margin-top:18px}.all-tag-list button{font-size:.82rem}
 @media(max-width:700px){.folder-colors{grid-template-columns:repeat(4,1fr)}.memo-row{grid-template-columns:minmax(0,1fr) auto}.memo-info{max-height:3.25rem}}
+
+/* On phones the memo viewer is a normal document page, not a modal layer. */
+@media(max-width:700px){
+body.viewer-page-open{min-height:100dvh;background:#fff}
+body.viewer-page-open>.app-header,body.viewer-page-open>.page-shell{display:none}
+body.viewer-page-open .viewer-dialog{position:static;display:block;width:100%;height:auto;min-height:100dvh;max-height:none;margin:0;padding:0;border:0;border-radius:0;box-shadow:none}
+body.viewer-page-open .viewer-panel{width:100%;max-width:760px;min-height:100dvh;height:auto;margin:0 auto;padding:20px 18px 44px;overflow:visible}
+body.viewer-page-open .viewer-heading{position:relative;padding-right:40px;align-items:flex-start}
+body.viewer-page-open .viewer-heading-title{display:block}
+body.viewer-page-open .viewer-heading .eyebrow{margin-top:6px}
+body.viewer-page-open .viewer-heading-actions{position:absolute;top:-7px;right:0}
+body.viewer-page-open .viewer-heading h2{font-size:1.35rem;line-height:1.45;overflow-wrap:anywhere}
+body.viewer-page-open .viewer-body{min-height:0;padding-top:24px}
+}
