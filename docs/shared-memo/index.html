@@ -6,25 +6,24 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<header class="app-header"><a class="brand" href="./">Shared Memo</a><div id="user-panel" class="user-panel" hidden><div><strong id="user-name"></strong><span id="user-email"></span></div><button id="logout-button" class="button quiet" type="button">ログアウト</button></div></header>
+<header class="app-header"><a class="brand" href="./">Shared Memo</a><div id="user-panel" class="user-panel" hidden><button id="mobile-menu-button" class="button quiet mobile-only" type="button" aria-controls="side-nav" aria-expanded="false">メニュー</button><div><strong id="user-name"></strong><span id="user-email"></span></div><button id="logout-button" class="button quiet" type="button">ログアウト</button></div></header>
 <main class="page-shell">
   <div id="message" class="message" role="alert" aria-live="assertive" hidden></div>
   <section id="login-view" class="center-card"><h1>共有メモへようこそ</h1><p>グループのメモを見るにはログインしてください。</p><button id="login-button" class="button" type="button">Googleでログイン</button></section>
   <section id="memo-view" hidden>
-    <div class="section-heading"><div><p id="group-name" class="eyebrow">共有グループ</p><h1 id="view-title">共有メモ</h1></div><button id="mobile-menu-button" class="button quiet mobile-only" type="button" aria-expanded="false">メニュー</button></div>
-    <div class="search-wrap"><span aria-hidden="true">🔍</span><input id="search-input" type="search" placeholder="メモを検索..." aria-label="メモを検索"><button id="search-clear" class="text-button" type="button" hidden>クリア</button></div>
     <div class="workspace">
       <aside id="side-nav" class="side-nav">
+        <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="検索..." aria-label="メモを検索"><button id="search-clear" class="search-clear" type="button" aria-label="検索をクリア" title="検索をクリア" hidden>×</button></div>
         <div class="nav-heading"><button data-view="all" class="nav-section active">フォルダ</button><button id="add-folder-button" class="icon-small" title="フォルダ作成">＋</button></div><button data-view="folder" data-folder-id="none">未分類</button><div id="folder-list"></div>
         <div class="nav-heading"><strong>タグ</strong></div><div id="tag-list" class="tag-list"></div>
         <button data-view="trash">ゴミ箱</button><button id="settings-button">設定</button>
       </aside><div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-label="サイドバーの幅を調整" aria-orientation="vertical" tabindex="0"></div>
       <div class="content">
-        <div class="toolbar"><button id="add-button" class="button">＋ 新規</button></div>
         <div id="bulk-actions" class="bulk-actions" hidden><strong id="selection-count"></strong><button id="bulk-trash" class="button danger" type="button">ゴミ箱に送る</button><button id="bulk-download" class="button quiet" type="button">ローカルに保存する</button><button id="bulk-cancel" class="text-button" type="button">キャンセル</button></div>
         <p id="active-filter" class="active-filter" hidden></p><p id="loading" class="status">メモを読み込んでいます…</p><p id="empty-state" class="empty-state" hidden>表示するメモはありません。</p><div id="memo-list" class="memo-list" aria-label="メモ一覧"></div>
       </div>
     </div>
+    <button id="add-button" class="add-button" type="button" aria-label="新規メモを作成" title="新規メモを作成">＋</button>
   </section>
 </main>
 <dialog id="memo-dialog" class="editor-dialog"><form id="memo-form" method="dialog">
