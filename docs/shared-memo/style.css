@@ -95,3 +95,6 @@ body.viewer-page-open .viewer-heading h2{font-size:1.1rem}
 .memo-row.selection-mode{cursor:pointer;user-select:none}
 .memo-row.selection-mode:hover,.memo-row.selection-mode:focus-visible{background:var(--accent-soft);outline:0}
 .memo-row.selection-mode button,.memo-row.selection-mode details{pointer-events:none}
+
+/* Select existing tags when assigning tags to a memo. */
+.tag-choice-field{margin:18px 0 6px;padding:0;border:0}.tag-choice-field legend{margin-bottom:10px;font-weight:700}.tag-settings-options{display:flex;max-height:220px;flex-wrap:wrap;gap:7px;overflow:auto}.tag-choice{position:relative;margin:0;cursor:pointer}.tag-choice input{position:absolute;width:1px;height:1px;opacity:0}.tag-choice span{display:block;padding:6px 10px;color:var(--muted);background:#fff;border:1px solid #cbd0d8;border-radius:99px;font-size:.82rem}.tag-choice input:checked+span{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}.tag-choice input:focus-visible+span{outline:3px solid var(--accent-soft);outline-offset:2px}.tag-new-row{display:flex;gap:8px}.tag-new-row input{min-width:0}.tag-new-row .button{flex:none}
