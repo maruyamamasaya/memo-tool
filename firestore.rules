@@ -60,20 +60,24 @@ service cloud.firestore {
     match /folders/{folderId} {
       allow read, delete: if isGroupMember(resource.data.groupId);
       allow create: if isGroupMember(request.resource.data.groupId)
-        && request.resource.data.keys().hasOnly(['groupId','name','createdBy','createdAt'])
+        && request.resource.data.keys().hasOnly(['groupId','name','color','createdBy','createdAt'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 60
+        && request.resource.data.color is string
+        && request.resource.data.color.matches('^#[0-9a-fA-F]{6}$')
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.createdAt == request.time;
       allow update: if isGroupMember(resource.data.groupId)
         && request.resource.data.groupId == resource.data.groupId
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','color'])
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 60;
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.color is string
+        && request.resource.data.color.matches('^#[0-9a-fA-F]{6}$');
     }
   }
 }

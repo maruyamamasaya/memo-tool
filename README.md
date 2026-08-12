@@ -22,7 +22,7 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 | `trashed`, `trashedAt` | boolean, timestamp / null | 論理削除状態と削除日時 |
 | `lastOpenedAt` | timestamp | 最後に開いた日時 |
 
-`folders/{folderId}` は `groupId`, `name`, `createdBy`, `createdAt` を持ちます。フォルダ削除はバッチで所属メモの `folderId` を null にしてからフォルダだけを削除します。文字数は保存しません。
+`folders/{folderId}` は `groupId`, `name`, `color`, `createdBy`, `createdAt` を持ちます。フォルダ削除はバッチで所属メモの `folderId` を null にしてからフォルダだけを削除します。文字数は保存しません。
 
 ### 既存メモとの互換性
 
@@ -34,6 +34,7 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 - `sharedMemoV3.density` — コンパクト / 標準 / 全文
 - `sharedMemoV3.clipboard` — 端末内クリップボード（最大10件）
 - `sharedMemoV3.mobileMenu` — モバイルメニューの開閉状態
+- `sharedMemoV3.sidebarWidth` — デスクトップのサイドバー幅
 
 フォルダ、タグ、ゴミ箱、最終閲覧日時は Firestore に保存されます。
 
@@ -66,7 +67,7 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 
 ### メモの編集方法
 
-一覧は行全体をクリックすると表示できます。行末の操作はコピー、編集、設定にまとめられ、設定から形式（拡張子）、フォルダ、タグ、ダウンロードを操作できます。
+一覧は「タイトル」「タグ / フォルダ」「操作」の3列で、更新日時はタイトルの上に表示します。長いタイトルとサイドバーのフォルダ名は1行で省略されます。拡張子またはフォルダ名をクリックすると専用の設定画面が開き、行末の「⋯」からも設定画面やタグ、ダウンロードなどを操作できます。サイドバー右端はドラッグまたは矢印キーで幅を変更でき、その幅は端末に保存されます。フォルダのドラッグ＆ドロップ移動は将来対応予定で、現段階では未実装です。
 
 編集画面は1つの入力欄です。1行目をタイトル、最終行の `#タグ` をタグとして扱い、その間を本文として保存します。最終行で `#` を入力すると既存タグの候補が表示され、入力が止まってから1.5秒後に自動保存します。保存後も画面は閉じず、そのまま編集を続けられます。
 
