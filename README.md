@@ -16,6 +16,7 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 
 | フィールド | 型 | 内容 |
 | --- | --- | --- |
+| `format` | string | メモ形式（`md` / `txt`） |
 | `folderId` | string / null | 所属フォルダ。null は未分類 |
 | `tags` | string[] | 最大20個のタグ |
 | `trashed`, `trashedAt` | boolean, timestamp / null | 論理削除状態と削除日時 |
@@ -25,7 +26,7 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 
 ### 既存メモとの互換性
 
-クライアントは欠損値を `type: text`, `folderId: null`, `tags: []`, `pinned: false`, `trashed: false` として正規化します。手動移行は不要で、既存メモを次に通常保存した時点でV3フィールドが加わります。
+クライアントは欠損値を `type: text`, `format: txt`, `folderId: null`, `tags: []`, `pinned: false`, `trashed: false` として正規化します。手動移行は不要で、既存メモを次に通常保存した時点でV3フィールドが加わります。
 
 ## localStorage
 
