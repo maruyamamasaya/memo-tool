@@ -20,7 +20,14 @@
       </aside><div id="sidebar-resizer" class="sidebar-resizer" role="separator" aria-label="サイドバーの幅を調整" aria-orientation="vertical" tabindex="0"></div>
       <div class="content">
         <div id="bulk-actions" class="bulk-actions" hidden><strong id="selection-count"></strong><button id="bulk-move" class="button quiet" type="button">フォルダー移動</button><button id="bulk-trash" class="button danger" type="button">ゴミ箱に送る</button><button id="bulk-download" class="button quiet" type="button">ローカルに保存する</button><button id="bulk-cancel" class="text-button" type="button">キャンセル</button></div>
-        <p id="active-filter" class="active-filter" hidden></p><p id="loading" class="status">メモを読み込んでいます…</p><p id="empty-state" class="empty-state" hidden>表示するメモはありません。</p><div id="memo-list" class="memo-list" aria-label="メモ一覧"></div>
+        <p id="active-filter" class="active-filter" hidden></p><p id="loading" class="status">メモを読み込んでいます…</p>
+        <div id="list-filters" class="list-filters" aria-label="メモを絞り込む">
+          <label>タイトル<input id="title-filter" type="search" placeholder="含まれるワード"></label>
+          <label>作成日（開始）<input id="date-filter-from" type="date"></label>
+          <label>作成日（終了）<input id="date-filter-to" type="date"></label>
+          <button id="clear-list-filters" class="button quiet" type="button">フィルターをクリア</button>
+        </div>
+        <p id="empty-state" class="empty-state" hidden>表示するメモはありません。</p><div id="memo-list" class="memo-list" aria-label="メモ一覧"></div>
       </div>
     </div>
     <button id="add-button" class="add-button" type="button" aria-label="新規メモを作成" title="新規メモを作成">＋</button>
