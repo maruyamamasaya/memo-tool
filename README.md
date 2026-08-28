@@ -5,7 +5,7 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 ## ファイル
 
 - `docs/shared-memo/index.html` — 検索、ナビゲーション、メモ・フォルダ編集画面
-- `docs/shared-memo/style.css` — 3段階の表示密度とモバイルメニューを含むレスポンシブUI
+- `docs/shared-memo/style.css` — テーマとモバイルメニューを含むレスポンシブUI
 - `docs/shared-memo/app.js` — 認証、リアルタイム同期、V3機能、localStorage管理
 - `docs/shared-memo/firebase-config.js` — Firebase Webアプリ設定とグループID
 - `firestore.rules` — グループメンバーだけに `memos` / `folders` 操作を許可するルール
@@ -31,8 +31,6 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 ## localStorage
 
 - `sharedMemoV3.theme` — 画面全体のテーマ（スカイ / フォレスト / ラベンダー / サンセット / ミッドナイト）
-- `sharedMemoV3.density` — コンパクト / 標準 / 全文
-- `sharedMemoV3.clipboard` — 端末内クリップボード（最大10件）
 - `sharedMemoV3.mobileMenu` — モバイルメニューの開閉状態
 - `sharedMemoV3.sidebarWidth` — デスクトップのサイドバー幅
 
@@ -49,7 +47,7 @@ Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽�
 
 ### 複合インデックス
 
-アプリのクエリは `memos` / `folders` とも `groupId == group001` の単一条件だけです。検索、タグ、タイプ、フォルダ、ピン、ゴミ箱、最近、各種並び替えは取得済みデータをブラウザで処理するため、V3で追加する複合インデックスはありません。
+アプリのクエリは `memos` / `folders` とも `groupId == group001` の単一条件だけです。検索、タグ、フォルダ、ゴミ箱、最近、各種並び替えは取得済みデータをブラウザで処理するため、V3で追加する複合インデックスはありません。
 
 ## 動作確認
 
