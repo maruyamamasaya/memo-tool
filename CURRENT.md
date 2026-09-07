@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-08-28
+updated: 2026-09-07
 ---
 
 # 現在の状態
@@ -18,7 +18,7 @@ updated: 2026-08-28
 ## 開発・運用状態
 
 - ソースは `docs/shared-memo/` の HTML/CSS/JavaScript とルートの `firestore.rules`。package manager、コンパイル、バンドル工程はない。
-- CI/CD、自動テスト、lint、typecheck、Firebase Emulator 設定はない。検証は README の手動確認が中心。
+- CI/CD、unit/E2E test、lint、typecheck、Firebase Emulator 設定はない。依存不要の標準 static verify と変更種別ごとの手動確認は `TESTING.md` に集約した。
 - GitHub Pages 向けだが、Pages の現在設定、公開 URL、稼働中 commit はリポジトリだけでは確認できない。
 - Firebase プロジェクト識別情報と既定 group は設定済み。ただし Console 上の Authentication、Authorized domains、members、デプロイ済み Rules が一致するかは確認不能。
 
@@ -28,7 +28,7 @@ updated: 2026-08-28
 2. フォルダ削除は所属メモ更新とフォルダ削除を 1 batch に入れる。Firestore の batch 上限を超える規模では分割が必要。
 3. CDN（Firebase SDK、marked、DOMPurify）と Firebase への接続が必須で、オフライン対応はない。
 4. Rules の認可・入力検証は実装済みだが、デプロイ済み Rules としての統合検証結果は保存されていない。
-5. 自動回帰テストがなく、認証・権限・レスポンシブ UI は Firebase 環境とブラウザでの手動確認を要する。
+5. static verify の範囲外である認証・権限・レスポンシブ UI は Firebase 環境とブラウザでの手動確認を要する。
 
 ## 現在の優先事項
 
