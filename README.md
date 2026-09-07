@@ -2,6 +2,8 @@
 
 Google Authentication と Cloud Firestore を使う、GitHub Pages 向けの軽量な共有メモです。Vanilla JavaScript のまま、普段は個人用として快適に、必要なときは `group001` のメンバー間でリアルタイム共有できます。
 
+AI/開発者向けの探索入口は [`AGENTS.md`](AGENTS.md)、検証は [`TESTING.md`](TESTING.md)、起動・deploy は [`OPERATIONS.md`](OPERATIONS.md) を正本とします。
+
 ## ファイル
 
 - `docs/shared-memo/index.html` — 検索、ナビゲーション、メモ・フォルダ編集画面
