@@ -4,11 +4,13 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="個人でも共有でも使える軽量メモアプリ"><title>Shared Memo V3</title>
   <meta name="theme-color" content="#f4f7fb">
+  <link rel="icon" type="image/png" href="./shared-memo-icon.png">
+  <link rel="apple-touch-icon" href="./shared-memo-icon.png">
   <script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem("sharedMemoV3.theme"))||"sky"}catch{document.documentElement.dataset.theme="sky"}</script>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<header class="app-header"><a class="brand" href="./">Shared Memo</a><div id="user-panel" class="user-panel" hidden><button id="mobile-menu-button" class="button quiet mobile-only" type="button" aria-controls="side-nav" aria-expanded="false">メニュー</button><div><strong id="user-name"></strong><span id="user-email"></span></div><button id="logout-button" class="button quiet" type="button">ログアウト</button></div></header>
+<header class="app-header"><a class="brand" href="./"><img src="./shared-memo-icon.png" alt="" width="32" height="32">Shared Memo</a><div id="user-panel" class="user-panel" hidden><button id="mobile-menu-button" class="button quiet mobile-only" type="button" aria-controls="side-nav" aria-expanded="false">メニュー</button><div><strong id="user-name"></strong><span id="user-email"></span></div><button id="logout-button" class="button quiet" type="button">ログアウト</button></div></header>
 <main class="page-shell">
   <div id="message" class="message" role="alert" aria-live="assertive" hidden></div>
   <section id="login-view" class="center-card"><h1>共有メモへようこそ</h1><p>グループのメモを見るにはログインしてください。</p><button id="login-button" class="button" type="button">Googleでログイン</button></section>
