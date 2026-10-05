@@ -5,4 +5,4 @@ mode="${1:-full}"
 if [[ "$mode" != fast && "$mode" != full ]]; then echo "usage: $0 [fast|full]" >&2; exit 2; fi
 python3 scripts/check_static.py
 if [[ "$mode" == full ]]; then python3 scripts/check_markdown_links.py; fi
-echo "${mode^} validation passed. Browser/Firebase checks remain change-dependent; see TESTING.md."
+echo "${mode} validation passed. Browser/Firebase checks remain change-dependent; see TESTING.md."
