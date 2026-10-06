@@ -7,3 +7,5 @@ desktop/dist/
 preview*.html
 
 preview*
+
+node_modules
