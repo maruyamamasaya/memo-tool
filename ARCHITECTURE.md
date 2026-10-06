@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-08-28
+updated: 2026-10-07
 ---
 
 # アーキテクチャ
@@ -18,6 +18,8 @@ Firestore requests ──────────── firestore.rules
 ```
 
 独自 server/API はない。ブラウザが Firebase Web SDK を CDN から ESM として読み込み、Firestore を直接操作する。相対パスを使うため GitHub Pages の `/docs` とローカル HTTP server で配信できる。この構成と権限境界は [`ADR-001`](decisions/ADR-001-static-firebase-client-and-group-authorization.md) に記録する。
+
+Mac/WindowsのElectron常駐アプリは同じWebをsandbox付きで表示する。Google認証はシステムブラウザで行い、短命のlocalhostコールバックでoriginとnonceを検証して認証情報を渡す。Firestoreの認可境界は共通。
 
 ## コンポーネント責務
 
@@ -56,6 +58,7 @@ Firestore requests ──────────── firestore.rules
 
 - 所属: `groupId`, `folderId`
 - 内容: `title`, `body`, `type`, `format`, `tags`, `pinned`
+- 任意分類: `usage` (temporary/saved), `confidential` (boolean), `contentKind` (note/prompt/command/code)。旧データの既定値はsaved/false/note。
 - 状態: `trashed`, `trashedAt`, `lastOpenedAt`
 - 監査: `createdBy`, `createdByName`, `createdAt`, `updatedBy`, `updatedByName`, `updatedAt`
 

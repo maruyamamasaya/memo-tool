@@ -13,7 +13,7 @@ Optional metadata preserves legacy records as saved/public/note. Raw-body editor
 6 Node tests pass. 4 Firestore Emulator tests pass (member/non-member, optional fields, old-client preservation, immutable fields, trash/restore). Browser fixture verified titleless command saving/copy, whitespace/hash preservation, confidential search exclusion, and mobile viewport. SwiftData legacy migration/trash/restore regression passes. iOS signed simulator build, archive and development IPA export succeed. Mac trial launches and shortcut restores its hidden window.
 
 ## Result
-Firestore Rules deployed successfully. Web publication and authenticated desktop handoff are being verified.
+Firestore Rules deployed successfully. Web publication confirmed at commit 366065d. Chrome Google authentication successfully handed credentials to the Mac app; the native app shows signed-in and synchronized state. Reloading ignores cache, and versioned Web assets prevent the obsolete embedded popup flow.
 
 ## Remaining Issues
-Windows runtime requires a Windows host. Desktop signing/notarization and App Store/TestFlight distribution are not configured. Cross-device Google sign-in and iOS share extension still require authenticated device verification.
+Windows runtime requires a Windows host. Desktop signing/notarization and App Store/TestFlight distribution are not configured. iOS Google sign-in and the share extension still require authenticated device verification. Mac Google sign-in is verified.

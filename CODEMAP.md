@@ -6,7 +6,7 @@
 - **Primary paths:** `docs/shared-memo/app.js`, `docs/shared-memo/firebase-config.js`, `firestore.rules`
 - **Search keywords:** `onAuthStateChanged`, `signInWithPopup`, `enter`, `isGroupMember`, `defaultGroupId`, `members`
 - **Key entry points:** `start()`, `enter()`, Rules の `isGroupMember()`
-- **Related tests:** 自動テストなし。`TESTING.md` の認証・Rules 手動確認
+- **Related tests:** `tests/firestore-rules.test.mjs`、`desktop/test/auth-bridge.test.cjs` と `TESTING.md` の認証確認
 
 ## Memo editing, storage, and synchronization
 - **Primary paths:** `docs/shared-memo/app.js`, `firestore.rules`
@@ -35,3 +35,8 @@
 ## Searchability notes
 
 機能ごとの directory や DB access layer はなく、`app.js` が UI と Firestore 操作を一括して持つ。現在は小規模だが、検索結果が同じ単一ファイルへ集中する。機能変更で分割が必要になった時に限り、イベント binding・表示・永続化の責務分割を ADR とともに検討し、検索性だけを理由に大規模 rename はしない。環境変数は使わず、公開クライアント設定は `firebaseConfig` に集約されている。
+
+## Cross-device workflow and desktop
+- **Primary paths:** `docs/shared-memo/memo-options.mjs`, `desktop/main.cjs`, `desktop/preload.cjs`, `desktop/auth-bridge.cjs`
+- **Search keywords:** `memoOptions`, `parseRawMemo`, `googleLogin`, `desktopLogin`, `memoDesktop`, `createAuthBridge`
+- **Related tests:** `tests/memo-options.test.mjs`, `desktop/test/auth-bridge.test.cjs`

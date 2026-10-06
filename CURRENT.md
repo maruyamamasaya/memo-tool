@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-09-07
+updated: 2026-10-07
 ---
 
 # 現在の状態
@@ -15,19 +15,21 @@ updated: 2026-09-07
 
 利用方法と画面単位の確認項目は [`README.md`](README.md)、構造とデータモデルは [`ARCHITECTURE.md`](ARCHITECTURE.md) を参照する。
 
+- 一時/保存、固定、機密ラベル、プロンプト/コマンド/コード分類、本文そのまま入力とコピーを追加。既存データは保存/公開/メモとして扱う。
+
 ## 開発・運用状態
 
 - ソースは `docs/shared-memo/` の HTML/CSS/JavaScript とルートの `firestore.rules`。package manager、コンパイル、バンドル工程はない。
-- CI/CD、unit/E2E test、lint、typecheck、Firebase Emulator 設定はない。依存不要の標準 static verify と変更種別ごとの手動確認は `TESTING.md` に集約した。
-- GitHub Pages 向けだが、Pages の現在設定、公開 URL、稼働中 commit はリポジトリだけでは確認できない。
-- Firebase プロジェクト識別情報と既定 group は設定済み。ただし Console 上の Authentication、Authorized domains、members、デプロイ済み Rules が一致するかは確認不能。
+- Nodeのモデル・認証連携テスト6件とFirestore EmulatorのRulesテスト4件を追加。検証方法は `TESTING.md` に集約した。
+- GitHub Pages main/docsで公開済み。公開URLは `https://maruyamamasaya.github.io/memo-tool/shared-memo/`。
+- shared-memo-63202のRulesをデプロイ済み。Mac常駐アプリのChrome認証と同期を確認。
 
 ## 既知の制約・未解決事項
 
 1. 全 memos/folders を group 単位で購読しブラウザで検索・整列するため、件数増加時のページングや query 分割は未実装。
 2. フォルダ削除は所属メモ更新とフォルダ削除を 1 batch に入れる。Firestore の batch 上限を超える規模では分割が必要。
 3. CDN（Firebase SDK、marked、DOMPurify）と Firebase への接続が必須で、オフライン対応はない。
-4. Rules の認可・入力検証は実装済みだが、デプロイ済み Rules としての統合検証結果は保存されていない。
+4. Windows実行、iOS共有拡張の認証付き実機検証は未完了。デスクトップZIPは未署名の試用版。
 5. static verify の範囲外である認証・権限・レスポンシブ UI は Firebase 環境とブラウザでの手動確認を要する。
 
 ## 現在の優先事項

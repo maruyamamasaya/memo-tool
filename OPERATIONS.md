@@ -27,3 +27,5 @@ python3 -m http.server 8000
 GitHub Pages APIで`maruyamamasaya/memo-tool`の`main` `/docs`配信を確認。アプリURLは https://maruyamamasaya.github.io/memo-tool/shared-memo/ 。Firebase対象は`shared-memo-63202`。任意のusage/confidential/contentKindフィールドを許可するRulesを先に検証・配信してからWebを公開する。旧データと旧クライアントの更新互換性を維持する。
 
 常駐アプリは[desktop/README.md](desktop/README.md)の通り既存Webを読み込む。更新時はWeb公開後、既存ウィンドウを再読み込みして認証連携を検証する。
+
+Macログインが旧popup経路で止まる場合は、最新の常駐アプリでShared Memoメニューの「再読み込み」を選ぶ。GoogleでログインするとChromeに同じWebが開き、「常駐アプリへログイン」から認証する。成功時はアプリが同期済みになる。認証リンクは3分で失効するため、失効時はアプリから再実行する。
