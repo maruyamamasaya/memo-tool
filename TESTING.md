@@ -37,3 +37,11 @@ git diff --check
 - UI 変更では 700px 以下/超、keyboard、dialog、theme/localStorage。
 
 本番 Firebase の詳細な利用シナリオは人間向け [`README.md`](README.md#動作確認) にある。
+
+## 共有クリップボードの回帰
+
+標準verifyに旧データ既定値・用途/機密/固定のフィルター・生本文保持・常駐アプリ認証コールバックのテストを含む。コールバックテストはlocalhostのbindが必要。
+
+FirestoreはFirebase CLI、Java 21以上、`@firebase/rules-unit-testing`と`firebase`を利用して、`firebase emulators:exec --only firestore --project demo-shared-memo 'node --test tests/firestore-rules.test.mjs'`で確認する。テスト依存はtestsから解決可能な位置に準備する。本番プロジェクトでこのテストを実行しない。
+
+画面では一時→保存への変更、旧メモ保持、タイトル不要の保存、機密本文検索除外、字下げ・末尾#を含む本文コピー、エディター失敗時に閉じないことを確認する。デスクトップはGoogleログインのシステムブラウザ引継ぎ・トレイ・ショートカット・終了を確認する。

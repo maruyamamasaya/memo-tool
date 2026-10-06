@@ -1,2 +1,9 @@
 __pycache__/
 *.py[cod]
+
+node_modules/
+desktop/dist/
+*-debug.log
+preview*.html
+
+preview*

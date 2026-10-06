@@ -21,3 +21,9 @@ python3 -m http.server 8000
 - app と同時に root の `firestore.rules` を対象 Firebase project へ deploy する。
 - repository 内に CI/CD、Firebase CLI project mapping、production URL の正本はないため、対象 project と稼働 revision を運用担当者が確認する。推測して deploy しない。
 - deploy 前後の検証は [`TESTING.md`](TESTING.md) に従う。
+
+## Current publishing target
+
+GitHub Pages APIで`maruyamamasaya/memo-tool`の`main` `/docs`配信を確認。アプリURLは https://maruyamamasaya.github.io/memo-tool/shared-memo/ 。Firebase対象は`shared-memo-63202`。任意のusage/confidential/contentKindフィールドを許可するRulesを先に検証・配信してからWebを公開する。旧データと旧クライアントの更新互換性を維持する。
+
+常駐アプリは[desktop/README.md](desktop/README.md)の通り既存Webを読み込む。更新時はWeb公開後、既存ウィンドウを再読み込みして認証連携を検証する。

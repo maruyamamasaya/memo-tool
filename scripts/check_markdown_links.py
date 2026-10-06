@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]; LINK=re.compile(r'(?<!!)\[[^]]*\]\(([^
 def main():
     names=subprocess.check_output(['git','ls-files','*.md'],cwd=ROOT,text=True).splitlines()
     # Include newly created Markdown before its first commit.
-    names=sorted(set(names)|{str(p.relative_to(ROOT)) for p in ROOT.rglob('*.md') if '.git' not in p.parts})
+    names=sorted(set(names)|{str(p.relative_to(ROOT)) for p in ROOT.rglob('*.md') if '.git' not in p.parts and 'node_modules' not in p.parts and 'dist' not in p.parts})
     errors=[]
     for name in names:
         path=ROOT/name

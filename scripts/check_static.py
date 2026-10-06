@@ -19,7 +19,7 @@ def main():
     else:
         registered=set(re.findall(r'"([^"]+)"',match.group(1)))
         errors += [f'app.js id absent from index.html: {i}' for i in sorted(registered-parser.ids)]
-    for path in (APP/'app.js',APP/'firebase-config.js'):
+    for path in (APP/'app.js',APP/'firebase-config.js',APP/'memo-options.mjs'):
         source=re.sub(r'^import .*?;\s*$','',path.read_text(),flags=re.M)
         source=re.sub(r'^export\s+','',source,flags=re.M)
         with tempfile.NamedTemporaryFile('w',suffix='.js') as copy:
