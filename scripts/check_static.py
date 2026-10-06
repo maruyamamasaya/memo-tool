@@ -10,7 +10,7 @@ class Parser(HTMLParser):
         values=dict(attrs)
         if values.get('id'): self.ids.add(values['id'])
         key='href' if tag=='link' else 'src' if tag=='script' else None
-        if key and values.get(key,'').startswith('./'): self.assets.append(values[key])
+        if key and values.get(key,'').startswith('./'): self.assets.append(values[key].split("?",1)[0])
 def main():
     parser=Parser(); parser.feed((APP/'index.html').read_text())
     errors=[f'missing local asset: {a}' for a in parser.assets if not (APP/a).is_file()]

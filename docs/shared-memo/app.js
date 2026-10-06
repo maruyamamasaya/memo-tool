@@ -120,6 +120,7 @@ function applyTheme(name){const theme=THEMES.includes(name)?name:(LEGACY_THEMES[
 
 async function googleLogin(){
  if(window.memoDesktop){await window.memoDesktop.login();return}
+ if(new URLSearchParams(location.search).get("desktop")==="1"){message("常駐アプリのログイン連携を読み込めませんでした。アプリを再起動してください。");return}
  const result=await signInWithPopup(auth,new GoogleAuthProvider());
  const params=new URLSearchParams(location.hash.slice(1)),port=params.get("desktopLogin"),state=params.get("state");
  if(port&&/^\d{1,5}$/.test(port)&&Number(port)>0&&Number(port)<65536&&/^[a-f0-9]{64}$/.test(state||"")){
