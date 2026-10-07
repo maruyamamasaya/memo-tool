@@ -41,3 +41,9 @@ updated: 2026-10-07
 ## 次のアクション
 
 新規タスクの要件に沿って決める。利用規模、障害報告、運用環境が不明なため、上記制約を推測で機能タスク化しない。
+
+## リポジトリ統合（2026-10-07）
+
+- Web・PC・iOSの開発正本を `memo-tool` に統一し、iOSソースとXcodeプロジェクトを `ios/` に配置した。
+- 旧 `memo-tool-app` は履歴参照用に保持。`memo-tool-main` の重複コピーは取り込まない。
+- 統合後のiOSビルド・Simulator・実機確認はWindows環境では未実施。Macで `ios/MemoApp.xcodeproj` を開いて確認する。

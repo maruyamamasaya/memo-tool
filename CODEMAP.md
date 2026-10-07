@@ -40,3 +40,9 @@
 - **Primary paths:** `docs/shared-memo/memo-options.mjs`, `desktop/main.cjs`, `desktop/preload.cjs`, `desktop/auth-bridge.cjs`
 - **Search keywords:** `memoOptions`, `parseRawMemo`, `googleLogin`, `desktopLogin`, `memoDesktop`, `createAuthBridge`
 - **Related tests:** `tests/memo-options.test.mjs`, `desktop/test/auth-bridge.test.cjs`
+
+## iOS app, synchronization, and share extension
+- **Primary paths:** `ios/MemoApp.xcodeproj`, `ios/MemoApp/Services/`, `ios/MemoApp/Models/`, `ios/MemoShare/ShareViewController.swift`
+- **Search keywords:** `AuthenticationService`, `FirebaseSyncCoordinator`, `FirestoreService`, `MemoStore`, `ShareViewController`, `ModelContainer`
+- **Related tests:** `ios/Tests/MemoPersistenceRegression.swift`, [iOSテスト手順](ios/docs/TESTING.md)
+- **Local instructions:** [ios/AGENTS.md](ios/AGENTS.md)

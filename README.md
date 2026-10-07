@@ -94,3 +94,16 @@ Auth UID、`groups` / `users` / `memos` / `folders`、監査フィールド、�
 新規メモは本文そのまま入力を標準にします。タイトルは省略でき、改行・字下げ・末尾の#も本文として保存します。従来の1行目タイトル／最終行タグ入力は「本文をそのまま保存」をオフにすると利用できます。「内容」はメモ・プロンプト・コマンド・コードから選べます。コマンドとコードはプレーン表示で、実行はしません。
 
 Mac/Windowsの試作常駐アプリは[desktop/README.md](desktop/README.md)を参照してください。
+
+## 統合リポジトリの構成
+
+Web・Mac/Windows・iOSの開発正本はこのリポジトリです。
+
+| パス | 対象 |
+| --- | --- |
+| `docs/shared-memo/` | Web版。GitHub Pagesの公開配置を維持 |
+| `desktop/` | Mac/WindowsのElectron常駐アプリ |
+| [ios/](ios/README.md) | iOSアプリ・共有拡張・Xcodeプロジェクト |
+| `firestore.rules` | 全クライアント共通のFirestore認可 |
+
+旧 `memo-tool-app` は履歴参照用です。新しいiOS変更は `ios/` で行い、Webの同期コピーは作成しません。

@@ -45,3 +45,9 @@ git diff --check
 FirestoreはFirebase CLI、Java 21以上、`@firebase/rules-unit-testing`と`firebase`を利用して、`firebase emulators:exec --only firestore --project demo-shared-memo 'node --test tests/firestore-rules.test.mjs'`で確認する。テスト依存はtestsから解決可能な位置に準備する。本番プロジェクトでこのテストを実行しない。
 
 画面では一時→保存への変更、旧メモ保持、タイトル不要の保存、機密本文検索除外、字下げ・末尾#を含む本文コピー、エディター失敗時に閉じないことを確認する。デスクトップはGoogleログインのシステムブラウザ引継ぎ・トレイ・ショートカット・終了を確認する。
+
+## iOS版の検証
+
+iOSソースの正本は `ios/`。MacのXcodeで `ios/MemoApp.xcodeproj` を開き、アプリと共有拡張のビルド・署名・認証・共通Firestoreとの同期を確認する。Simulatorの実行・記録・清掃は [ios/docs/TESTING.md](ios/docs/TESTING.md) に従う。モデル回帰用ソースは `ios/Tests/MemoPersistenceRegression.swift`。現在のプロジェクトにXCTestターゲットはなく、標準verifyはSwiftのビルド・回帰実行を含まない。
+
+配置変更時はプロジェクトとソース・Info.plist・entitlementsの相対参照を確認し、Macで移行後のビルドを行う。WindowsではXcode検証を未実施として記録する。

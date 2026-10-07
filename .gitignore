@@ -9,3 +9,11 @@ preview*.html
 preview*
 
 node_modules
+
+# Xcode local state and build artifacts
+.DS_Store
+**/xcuserdata/
+**/DerivedData/
+ios/build/
+*.xcarchive/
+*.xcresult/

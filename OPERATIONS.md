@@ -29,3 +29,7 @@ GitHub Pages APIで`maruyamamasaya/memo-tool`の`main` `/docs`配信を確認。
 常駐アプリは[desktop/README.md](desktop/README.md)の通り既存Webを読み込む。更新時はWeb公開後、既存ウィンドウを再読み込みして認証連携を検証する。
 
 Macログインが旧popup経路で止まる場合は、最新の常駐アプリでShared Memoメニューの「再読み込み」を選ぶ。GoogleでログインするとChromeに同じWebが開き、「常駐アプリへログイン」から認証する。成功時はアプリが同期済みになる。認証リンクは3分で失効するため、失効時はアプリから再実行する。
+
+## iOS development
+
+Macで `ios/MemoApp.xcodeproj` を開く。設定と構成は [ios/README.md](ios/README.md)、検証は [TESTING.md](TESTING.md) を参照する。Web公開は引き続き `main` の `/docs`、Rulesはルートを使う。iOSを含む今後の開発はこのリポジトリで行い、旧 `memo-tool-app` のソースやWebコピーは更新しない。

@@ -90,3 +90,9 @@ Rules は title、type/format、タグ数、UID、server timestamp、作成監�
 - Markdown を HTML 表示する前の sanitize。
 - 旧 document の正規化と互換性（廃止するなら移行計画が必要）。
 - 作成/更新時の UID と `serverTimestamp()`。
+
+## iOSクライアント
+
+`ios/MemoApp/` はSwiftUI・SwiftDataを用い、`Services/AuthenticationService.swift`、`FirestoreService.swift`、`FirebaseSyncCoordinator.swift` で共通Firebaseへ認証・同期する。`ios/MemoShare/` は共有KeychainのGoogle認証を利用して文章・URLを保存する共有拡張。権限境界は全クライアント共通のルート `firestore.rules`。
+
+Xcodeプロジェクトとアプリ・共有拡張を同じ `ios/` に置き、既存の相対参照を維持する。Webの公開配置とElectronの参照先は変わらない。開発正本はこのリポジトリに集約し、旧iOSリポジトリは履歴参照用に残す。
