@@ -104,7 +104,7 @@ async function saveEditor(){
  const result=await saveInFlight;saveInFlight=null;return result;
 }
 const KIND_LABELS={note:"メモ",prompt:"プロンプト",command:"コマンド",code:"コード"};
-function updateRawEditor(){const raw=el.editorRaw.checked;el.editorRawTitle.hidden=!raw;el.editorRawTags.hidden=!raw;el.memoEditor.placeholder=raw?"本文を貼り付け（改行・空白・#をそのまま保存）":"1行目はタイトル、最終行は #タグ"}
+function updateRawEditor(){const raw=el.editorRaw.checked;el.memoEditor.parentElement.classList.toggle("raw-mode",raw);el.editorRawTitle.hidden=!raw;el.editorRawTags.hidden=!raw;el.memoEditor.placeholder=raw?"本文を貼り付け（改行・空白・#をそのまま保存）":"1行目はタイトル、最終行は #タグ"}
 function editorParts(){const parts=el.editorRaw.checked?parseRawMemo(el.editorRawTitle.value,el.memoEditor.value,el.editorRawTags.value):legacyEditorParts();return {...parts,format:parts.format||el.editorFormat.value,folderId:el.editorFolder.value||null,usage:el.editorUsage.value,confidential:el.editorConfidential.checked,contentKind:el.editorKind.value}}
 function switchRawEditor(){if(el.editorRaw.checked){const parts=legacyEditorParts();el.editorRawTitle.value=parts.title;el.editorRawTags.value=parts.tags.join(" ");el.memoEditor.value=parts.body}else{el.memoEditor.value=[el.editorRawTitle.value,el.memoEditor.value,...(el.editorRawTags.value?[el.editorRawTags.value.split(/\s+/).map(t=>`#${t}`).join(" ")]:[])].join("\n")}updateRawEditor();scheduleAutosave()}
 
