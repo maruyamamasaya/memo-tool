@@ -1,6 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {memoOptions,parseRawMemo,matchesUsage} from '../docs/shared-memo/memo-options.mjs';
+import {memoOptions,parseRawMemo,matchesUsage,parseBodyMemo,memoEditorText} from '../docs/shared-memo/memo-options.mjs';
+test('body editor derives first line title without changing pasted content',()=>{const body='  command.txt\r\n\tcode\r\n#literal tag\n';assert.deepEqual(parseBodyMemo(body),{title:'command.txt',body});assert.equal(parseBodyMemo('x'.repeat(130)).title.length,120);assert.equal(parseBodyMemo('\nsecond line').title,'');assert.equal(parseBodyMemo('').body,'')});
+test('existing separate titles survive editing and derived titles do not duplicate',()=>{assert.equal(memoEditorText({title:'old title',body:'old body'}),'old title\nold body');const body='  first line\n#body\n';assert.equal(memoEditorText({title:'first line',body}),body);assert.equal(memoEditorText({title:'無題のメモ',body:'\ntext'}),'\ntext');assert.equal(memoEditorText(null),'')});
 test('legacy records default to saved, public, note without migration',()=>assert.deepEqual(memoOptions({}),{usage:'saved',confidential:false,contentKind:'note'}));
 test('independent flags and malformed defaults',()=>{assert.deepEqual(memoOptions({usage:'temporary',confidential:true,contentKind:'command'}),{usage:'temporary',confidential:true,contentKind:'command'});assert.equal(memoOptions({confidential:'true',contentKind:'invalid'}).confidential,false)});
 test('raw prompt/command preserves tabs, CRLF, trailing newline and hash',()=>{const body='  printf "hello"\r\n\t# shell comment\n\n';assert.equal(parseRawMemo('',body).body,body);assert.equal(parseRawMemo('',body).title,'')});

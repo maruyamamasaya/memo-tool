@@ -72,7 +72,7 @@ Rules は title、type/format、タグ数、UID、server timestamp、作成監�
 
 - **同期:** memos/folders を group 条件 1 つで `onSnapshot` 購読し、ブラウザ内配列へ格納。
 - **表示:** view/folder/tag/search/date/sort によりブラウザ内で絞り込み・整列。複合 index は前提にしない。
-- **編集:** textarea の 1 行目を title、最終行の `#タグ` 群を tags、その間を body とし、入力停止 1.5 秒後に保存。
+- **編集:** textarea 全文を body とし、1 行目を trim して最大120文字の title を自動生成する。空の1行目は保存時に「無題のメモ」とする。既存の独立したタイトルは編集時に本文へ引き継ぎ、tags と用途・機密・内容分類は保持する。入力停止 1.5 秒後に保存。
 - **Markdown:** `.md` は marked で HTML 化後、DOMPurify で sanitize。`.txt` は text として表示。
 - **削除:** 通常は `trashed` による論理削除。ゴミ箱から復元または確認後に完全削除。
 - **端末設定:** theme、mobile menu、sidebar width を `sharedMemoV3.*` の localStorage に保存。業務データは保存しない。
